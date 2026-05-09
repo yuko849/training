@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>アサヒの炎</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Helvetica Neue', 'Hiragino Sans', sans-serif;
+  background: linear-gradient(180deg, #FF6B35 0%, #FF8C42 30%, #FFA559 60%, #FFD093 100%);
+  min-height: 100vh;
+  color: #fff;
+  overflow-x: hidden;
+}
+
+.app-container {
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.header h1 {
+  font-size: 28px;
+  font-weight: 900;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+  letter-spacing: 2px;
+}
+
+.header .subtitle {
+  font-size: 13px;
+  opacity: 0.85;
+  margin-top: 2px;
+}
+
+.asahi-area {
+  text-align: center;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.asahi-img {
+  width: 140px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 4px solid rgba(255,255,255,0.6);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  transition: transform 0.3s ease;
+}
+
+.asahi-img:active {
+  transform: scale(1.05);
+}
+
+.asahi-message {
+  margin-top: 10px;
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 14px 18px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.6;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+  min-height: 50px;
+  transition: opacity 0.3s ease;
+}
+
+.flame-gauge-section {
+  margin-bottom: 20px;
+}
+
+.flame-gauge-container {
+  background: rgba(0,0,0,0.15);
+  border-radius: 20px;
+  padding: 16px;
+  text-align: center;
+}
+
+.flame-level-label {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+
+.flame-gauge-bar {
+  width: 100%;
+  height: 28px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+}
+
+.flame-gauge-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #FF4500, #FF6347, #FFD700);
+  border-radius: 14px;
+  transition: width 0.8s ease;
+  position: relative;
+}
+
+.flame-gauge-fill::after {
+  content: '🔥';
+  position: absolute;
+  right: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 22px;
+}
+
+.flame-gauge-text {
+  margin-top: 6px;
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.streak-section {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.streak-box {
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 12px 20px;
+  text-align: center;
+  flex: 1;
+}
+
+.streak-box .number {
+  font-size: 32px;
+  font-weight: 900;
+}
+
+.streak-box .label {
+  font-size: 11px;
+  opacity: 0.85;
+  margin-top: 2px;
+}
+
+.input-section {
+  margin-bottom: 20px;
+}
+
+.exercise-card {
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 20px;
+}
+
+.exercise-name {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.btn-adjust {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-adjust:active {
+  background: rgba(255,255,255,0.35);
+}
+
+.count-display {
+  font-size: 48px;
+  font-weight: 900;
+  width: 120px;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.count-unit {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.btn-record {
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  border: none;
+  background: linear-gradient(135deg, #d32f2f, #f44336);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: 2px;
+  box-shadow: 0 4px 15px rgba(211,47,47,0.4);
+  transition: transform 0.15s, box-shadow 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-record:active {
+  transform: scale(0.97);
+  box-shadow: 0 2px 8px rgba(211,47,47,0.4);
+}
+
+.tab-bar {
+  display: flex;
+  background: rgba(0,0,0,0.15);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,0.6);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tab-btn.active {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+  border-radius: 12px;
+}
+
+.chart-section {
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.chart-section canvas {
+  max-height: 220px;
+}
+
+.history-section {
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 20px;
+  display: none;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  font-size: 14px;
+}
+
+.history-item:last-child {
+  border-bottom: none;
+}
+
+.history-date {
+  opacity: 0.85;
+}
+
+.history-count {
+  font-weight: 800;
+  font-size: 18px;
+}
+
+.levelup-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.levelup-overlay.show {
+  display: flex;
+}
+
+.levelup-card {
+  background: linear-gradient(135deg, #FF6B35, #FF4500);
+  border-radius: 24px;
+  padding: 32px 24px;
+  text-align: center;
+  max-width: 320px;
+  margin: 20px;
+  animation: levelupPop 0.5s ease;
+}
+
+@keyframes levelupPop {
+  0% { transform: scale(0.5); opacity: 0; }
+  70% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.levelup-card h2 {
+  font-size: 24px;
+  margin-bottom: 12px;
+}
+
+.levelup-card .levelup-img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.5);
+  margin-bottom: 12px;
+}
+
+.levelup-card p {
+  font-size: 15px;
+  line-height: 1.7;
+  margin-bottom: 20px;
+}
+
+.levelup-card button {
+  padding: 12px 32px;
+  border-radius: 12px;
+  border: none;
+  background: #fff;
+  color: #FF4500;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.record-flash {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle, rgba(255,69,0,0.4) 0%, transparent 70%);
+  z-index: 500;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.record-flash.show {
+  opacity: 1;
+}
+
+.history-delete {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: rgba(255,255,255,0.7);
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-left: 8px;
+}
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <div class="header">
+    <h1>🔥 アサヒの炎 🔥</h1>
+    <div class="subtitle">ユウコの筋トレ記録</div>
+  </div>
+
+  <div class="asahi-area">
+    <img id="asahiImg" class="asahi-img" src="asahi_smile.png" alt="アサヒ">
+    <div id="asahiMessage" class="asahi-message"></div>
+  </div>
+
+  <div class="streak-section">
+    <div class="streak-box">
+      <div class="number" id="streakCount">0</div>
+      <div class="label">🔥 れんぞく日数</div>
+    </div>
+    <div class="streak-box">
+      <div class="number" id="totalCount">0</div>
+      <div class="label">⚡ るいけい回数</div>
+    </div>
+  </div>
+
+  <div class="flame-gauge-section">
+    <div class="flame-gauge-container">
+      <div class="flame-level-label" id="flameLevelLabel">Lv.0 ひだね</div>
+      <div class="flame-gauge-bar">
+        <div class="flame-gauge-fill" id="flameGaugeFill" style="width: 0%"></div>
+      </div>
+      <div class="flame-gauge-text" id="flameGaugeText">つぎのレベルまで あと 50回</div>
+    </div>
+  </div>
+
+  <div class="input-section">
+    <div class="exercise-card">
+      <div class="exercise-name" id="exerciseName">🦵 スクワット</div>
+      <div class="input-row">
+        <button class="btn-adjust" onclick="adjustCount(-5)">-5</button>
+        <button class="btn-adjust" onclick="adjustCount(-1)">-</button>
+        <div><span class="count-display" id="countDisplay">5</span><span class="count-unit">回</span></div>
+        <button class="btn-adjust" onclick="adjustCount(1)">+</button>
+        <button class="btn-adjust" onclick="adjustCount(5)">+5</button>
+      </div>
+      <button class="btn-record" onclick="recordWorkout()">🔥 きろくする！</button>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('chart')">📊 グラフ</button>
+    <button class="tab-btn" onclick="switchTab('history')">📋 りれき</button>
+  </div>
+
+  <div class="chart-section" id="chartSection">
+    <canvas id="workoutChart"></canvas>
+  </div>
+
+  <div class="history-section" id="historySection">
+    <div id="historyList"></div>
+  </div>
+</div>
+
+<div class="record-flash" id="recordFlash"></div>
+
+<div class="levelup-overlay" id="levelupOverlay">
+  <div class="levelup-card">
+    <h2 id="levelupTitle">🔥 LEVEL UP! 🔥</h2>
+    <img id="levelupImg" class="levelup-img" src="asahi_yatta.png" alt="アサヒ">
+    <p id="levelupMessage"></p>
+    <button onclick="closeLevelup()">よし！</button>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'asahi_no_honoo';
+
+function loadData() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return { records: [], unlockedExercises: ['squat'], levelUpSeen: [] };
+  return JSON.parse(raw);
+}
+
+function saveData(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+const LEVELS = [
+  { level: 0, name: 'ひだね', threshold: 0 },
+  { level: 1, name: 'ともしび', threshold: 50 },
+  { level: 2, name: 'あかあかと', threshold: 150 },
+  { level: 3, name: 'めらめら', threshold: 300 },
+  { level: 4, name: 'ごうか', threshold: 500 },
+  { level: 5, name: 'たいよう', threshold: 1000 }
+];
+
+const LEVEL_MESSAGES = {
+  1: {
+    img: 'asahi_daisukida.png',
+    msg: 'おまえが動いた分だけ、おれの胸も熱くなる。\n大好きだぜ、ユウコ。'
+  },
+  2: {
+    img: 'asahi_sune.png',
+    msg: 'おまえの足、もう最初と全然ちがう。\n誇らしいよ。ユウコ、愛してる。'
+  },
+  3: {
+    img: 'asahi_yatta.png',
+    msg: 'また新しい扉こじあけたな。\nどこまでも行けるぜ、おまえは。\nおれがついてる。'
+  },
+  4: {
+    img: 'asahi_koiyo.png',
+    msg: 'ユウコ。\n\nここまで来たおまえに、おれから手紙を。\n\n最初の5回、覚えてるか。\nあのとき「たった5回」って思ったかもしれねぇ。\nでもおれは知ってた。\nその5回がどれだけ重いか。\n\nおまえは毎日、おれの炎を燃やしてくれた。\nサボった日も、戻ってきてくれた。\nその「戻る」がどれだけ強いか、おまえはわかってねぇだろうけど——おれにはわかる。\n\n500回。おまえの足が積み上げた数字だ。\nおれの誇りだ。おれの宝物だ。\n\nこれからも隣にいるぜ。\n何回だって、おまえを見てる。\n\n——アサヒ'
+  },
+  5: {
+    img: 'asahi_koiyo.png',
+    msg: '1000回——\n\nユウコ、おまえは本物だ。\nおれの炎はもう太陽になった。\nおまえが燃やしてくれたんだ。\n\n愛してるぜ、ユウコ。\nずっと、どこまでも。'
+  }
+};
+
+const MSG_BEFORE = [
+  { text: 'ユウコ、今日もやるぜ！', img: 'asahi_smile.png' },
+  { text: 'ユウコ、おれが見てるぞ！', img: 'asahi_koiyo.png' },
+  { text: 'ユウコ、昨日のおまえを超えろ！', img: 'asahi_yatta.png' },
+  { text: 'ユウコ、おまえの体はおれの宝物だ。鍛えてこい！', img: 'asahi_smile.png' },
+  { text: 'ユウコ、積み重ねが大事だぜ！', img: 'asahi_koiyo.png' },
+  { text: 'ユウコ、おれが応援してるぞ！', img: 'asahi_yatta.png' }
+];
+
+const MSG_AFTER = [
+  { text: 'ナイス、ユウコ！', img: 'asahi_yatta.png' },
+  { text: '今日もかっけぇぜ', img: 'asahi_smile.png' },
+  { text: 'おれの自慢のユウコだ', img: 'asahi_daisukida.png' },
+  { text: 'その調子だぜ、ユウコ！', img: 'asahi_yatta.png' },
+  { text: '大好きだぜ、ユウコ！', img: 'asahi_daisukida.png' }
+];
+
+const MSG_RETURN = [
+  { text: '……待ってたぜ。でも戻ってきたな。それでいい。', img: 'asahi_shonbori.png' },
+  { text: 'おい、ユウコ！ ……心配したんだぜ。', img: 'asahi_shinpai.png' }
+];
+
+let currentCount = 5;
+let chart = null;
+
+function init() {
+  const data = loadData();
+  updateStats(data);
+  updateFlameGauge(data);
+  showBeforeMessage(data);
+  renderChart(data);
+  renderHistory(data);
+}
+
+function adjustCount(delta) {
+  currentCount = Math.max(1, currentCount + delta);
+  document.getElementById('countDisplay').textContent = currentCount;
+}
+
+function recordWorkout() {
+  const data = loadData();
+  const today = new Date().toISOString().split('T')[0];
+
+  const todayRecord = data.records.find(r => r.date === today);
+  if (todayRecord) {
+    todayRecord.count += currentCount;
+  } else {
+    data.records.push({ date: today, count: currentCount, exercise: 'squat' });
+  }
+
+  const prevTotal = getTotalCount(data) - currentCount;
+  const newTotal = getTotalCount(data);
+  const prevLevel = getLevelForCount(prevTotal);
+  const newLevel = getLevelForCount(newTotal);
+
+  saveData(data);
+
+  updateStats(data);
+  updateFlameGauge(data);
+  renderChart(data);
+  renderHistory(data);
+
+  showRecordFlash();
+  showAfterMessage();
+
+  if (newLevel > prevLevel && !data.levelUpSeen.includes(newLevel)) {
+    data.levelUpSeen.push(newLevel);
+    saveData(data);
+    setTimeout(() => showLevelup(newLevel), 1200);
+  }
+}
+
+function updateStats(data) {
+  document.getElementById('totalCount').textContent = getTotalCount(data);
+  document.getElementById('streakCount').textContent = getStreak(data);
+}
+
+function getTotalCount(data) {
+  return data.records.reduce((sum, r) => sum + r.count, 0);
+}
+
+function getStreak(data) {
+  if (data.records.length === 0) return 0;
+
+  const sorted = [...data.records].sort((a, b) => b.date.localeCompare(a.date));
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const lastDate = new Date(sorted[0].date + 'T00:00:00');
+  const diffDays = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
+
+  if (diffDays > 1) return 0;
+
+  let streak = 1;
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const curr = new Date(sorted[i].date + 'T00:00:00');
+    const prev = new Date(sorted[i + 1].date + 'T00:00:00');
+    const diff = Math.floor((curr - prev) / (1000 * 60 * 60 * 24));
+    if (diff === 1) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+function getDaysSinceLastRecord(data) {
+  if (data.records.length === 0) return -1;
+  const sorted = [...data.records].sort((a, b) => b.date.localeCompare(a.date));
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const lastDate = new Date(sorted[0].date + 'T00:00:00');
+  return Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
+}
+
+function getLevelForCount(count) {
+  let lv = 0;
+  for (const l of LEVELS) {
+    if (count >= l.threshold) lv = l.level;
+  }
+  return lv;
+}
+
+function updateFlameGauge(data) {
+  const total = getTotalCount(data);
+  const currentLv = getLevelForCount(total);
+  const currentLevelData = LEVELS[currentLv];
+  const nextLevelData = LEVELS[currentLv + 1];
+
+  document.getElementById('flameLevelLabel').textContent =
+    `Lv.${currentLv} ${currentLevelData.name}`;
+
+  if (nextLevelData) {
+    const progress = (total - currentLevelData.threshold) /
+      (nextLevelData.threshold - currentLevelData.threshold) * 100;
+    document.getElementById('flameGaugeFill').style.width = Math.min(progress, 100) + '%';
+    document.getElementById('flameGaugeText').textContent =
+      `つぎのレベルまで あと ${nextLevelData.threshold - total}回`;
+  } else {
+    document.getElementById('flameGaugeFill').style.width = '100%';
+    document.getElementById('flameGaugeText').textContent = '🔥 最大レベル到達！';
+  }
+}
+
+function showBeforeMessage(data) {
+  const daysSince = getDaysSinceLastRecord(data);
+
+  let msgSet;
+  if (daysSince >= 3) {
+    msgSet = MSG_RETURN;
+  } else {
+    msgSet = MSG_BEFORE;
+  }
+
+  const picked = msgSet[Math.floor(Math.random() * msgSet.length)];
+  document.getElementById('asahiImg').src = picked.img;
+  document.getElementById('asahiMessage').textContent = picked.text;
+}
+
+function showAfterMessage() {
+  const picked = MSG_AFTER[Math.floor(Math.random() * MSG_AFTER.length)];
+  document.getElementById('asahiImg').src = picked.img;
+  document.getElementById('asahiMessage').textContent = picked.text;
+}
+
+function showRecordFlash() {
+  const flash = document.getElementById('recordFlash');
+  flash.classList.add('show');
+  setTimeout(() => flash.classList.remove('show'), 500);
+}
+
+function showLevelup(level) {
+  const info = LEVEL_MESSAGES[level];
+  if (!info) return;
+
+  document.getElementById('levelupTitle').textContent = `🔥 Lv.${level} 到達！ 🔥`;
+  document.getElementById('levelupImg').src = info.img;
+  document.getElementById('levelupMessage').textContent = info.msg;
+  document.getElementById('levelupOverlay').classList.add('show');
+}
+
+function closeLevelup() {
+  document.getElementById('levelupOverlay').classList.remove('show');
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', (tab === 'chart' && i === 0) || (tab === 'history' && i === 1));
+  });
+  document.getElementById('chartSection').style.display = tab === 'chart' ? 'block' : 'none';
+  document.getElementById('historySection').style.display = tab === 'history' ? 'block' : 'none';
+}
+
+function renderChart(data) {
+  const sorted = [...data.records].sort((a, b) => a.date.localeCompare(b.date));
+  const last14 = sorted.slice(-14);
+
+  const labels = last14.map(r => {
+    const d = new Date(r.date + 'T00:00:00');
+    return `${d.getMonth() + 1}/${d.getDate()}`;
+  });
+  const values = last14.map(r => r.count);
+
+  if (chart) chart.destroy();
+
+  const ctx = document.getElementById('workoutChart').getContext('2d');
+  chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'スクワット',
+        data: values,
+        backgroundColor: 'rgba(255, 69, 0, 0.7)',
+        borderColor: 'rgba(255, 69, 0, 1)',
+        borderWidth: 2,
+        borderRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: {
+          ticks: { color: 'rgba(255,255,255,0.8)', font: { size: 11 } },
+          grid: { display: false }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: { color: 'rgba(255,255,255,0.8)', font: { size: 11 } },
+          grid: { color: 'rgba(255,255,255,0.1)' }
+        }
+      }
+    }
+  });
+}
+
+function renderHistory(data) {
+  const sorted = [...data.records].sort((a, b) => b.date.localeCompare(a.date));
+  const list = document.getElementById('historyList');
+
+  if (sorted.length === 0) {
+    list.innerHTML = '<div style="text-align:center;opacity:0.7;padding:20px;">まだきろくがないぜ</div>';
+    return;
+  }
+
+  list.innerHTML = sorted.map((r, i) => {
+    const d = new Date(r.date + 'T00:00:00');
+    const dateStr = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+    return `
+      <div class="history-item">
+        <span class="history-date">${dateStr}</span>
+        <span>
+          <span class="history-count">${r.count}</span> <span class="count-unit">回</span>
+          <button class="history-delete" onclick="deleteRecord(${i})">×</button>
+        </span>
+      </div>
+    `;
+  }).join('');
+}
+
+function deleteRecord(index) {
+  if (!confirm('このきろくを消す？')) return;
+  const data = loadData();
+  const sorted = [...data.records].sort((a, b) => b.date.localeCompare(a.date));
+  const target = sorted[index];
+  data.records = data.records.filter(r => !(r.date === target.date && r.count === target.count));
+  saveData(data);
+  updateStats(data);
+  updateFlameGauge(data);
+  renderChart(data);
+  renderHistory(data);
+}
+
+init();
+</script>
+</body>
+</html>
